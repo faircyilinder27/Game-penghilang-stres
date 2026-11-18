@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tebak Angka — Stress Relief Game</title>
+<style>
+:root{--ink:#243047;--muted:#667085;--mint:#d9f7ed;--teal:#168b78;--pink:#ffe2ed;--yellow:#fff1c7;--bg:#f5f7fb}
+*{box-sizing:border-box}body{margin:0;font-family:system-ui,-apple-system,Segoe UI,sans-serif;background:linear-gradient(135deg,#e7fbf5,#fcecf4 55%,#fff5d9);color:var(--ink);min-height:100vh;display:grid;place-items:center;padding:18px}
+main{width:min(100%,560px)}.panel{background:#ffffffed;border:1px solid #ffffff;border-radius:25px;padding:26px;box-shadow:0 16px 45px #35415c18}
+h1{text-align:center;margin:0;color:var(--teal);font-size:clamp(27px,7vw,38px)}.sub{text-align:center;color:var(--muted);margin:6px 0 22px}
+label{display:block;font-weight:700;margin:17px 0 8px}input,select{width:100%;padding:13px 14px;border:1px solid #d8deea;border-radius:13px;font:inherit;background:white;color:var(--ink)}
+.options{display:grid;grid-template-columns:repeat(3,1fr);gap:9px}.choice{border:1px solid #d8deea;border-radius:14px;padding:12px 5px;text-align:center;cursor:pointer;background:#fff}.choice input{width:auto;margin:0 4px 0 0}.choice:has(input:checked){background:var(--mint);border-color:var(--teal)}
+button{border:0;border-radius:14px;padding:14px 18px;font:inherit;font-weight:800;cursor:pointer;background:var(--teal);color:white;width:100%;margin-top:20px}button.secondary{background:#e9edf5;color:var(--ink)}button:disabled{opacity:.5;cursor:not-allowed}
+.hidden{display:none}.status{background:#f3f6fa;padding:12px;border-radius:13px;text-align:center;color:var(--muted);margin:12px 0}.guessrow{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:12px 0}.digit{background:#f1f4f8;border-radius:12px;padding:13px 4px;text-align:center;font-size:25px;font-weight:800;min-height:58px}.history{display:grid;gap:8px;margin-top:15px}.attempt{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:10px 12px;background:#f7f8fb;border-radius:12px}.digits{display:flex;gap:5px}.mini{padding:6px 9px;border-radius:8px;background:#e8edf4;font-weight:800}.hint{font-size:13px;color:var(--muted)}.result{text-align:center;padding:16px;background:var(--mint);border-radius:15px;margin-top:15px}.footer{text-align:center;font-size:12px;color:var(--muted);margin-top:14px}
+@media(max-width:380px){.panel{padding:19px}.choice{font-size:13px}}
+</style>
+</head>
+<body>
+<main>
+<section class="panel" id="setup">
+<h1>🌈 Tebak Angka</h1><p class="sub">Stress Relief Game · Rehat sejenak, main sebentar!</p>
+<label for="player">Nama pemain</label><input id="player" maxlength="24" placeholder="Masukkan nama kamu">
+<label>Tingkat stres saat ini</label>
+<div class="options">
+<label class="choice"><input type="radio" name="stress" value="Rendah" checked> 😊<br>Rendah</label>
+<label class="choice"><input type="radio" name="stress" value="Sedang"> 😐<br>Sedang</label>
+<label class="choice"><input type="radio" name="stress" value="Tinggi"> 😣<br>Tinggi</label>
+</div>
+<label for="tries">Jumlah kesempatan / baris</label>
+<select id="tries"><option value="4">4 baris</option><option value="6" selected>6 baris</option><option value="8">8 baris</option><option value="10">10 baris</option></select>
+<p class="hint">Kamu akan menebak 4 angka rahasia yang berbeda. Tidak perlu terburu-buru 😊</p>
+<button id="start">Mulai bermain 🚀</button>
+</section>
+<section class="panel hidden" id="game">
+<h1>🎯 Ayo Tebak!</h1><p class="sub" id="welcome"></p>
+<div class="status" id="progress"></div>
+<label for="guess">Masukkan 4 angka berbeda (contoh: 2581)</label>
+<input id="guess" inputmode="numeric" maxlength="4" placeholder="____" autocomplete="off">
+<p class="hint">🟩 Posisi dan angka benar · 🟨 Angka benar, posisi salah · ⬜ Angka tidak ada</p>
+<button id="submit">Kirim tebakan</button>
+<div class="history" id="history"></div>
+<div id="result" class="hidden result"></div>
+<button class="secondary hidden" id="again">Main lagi ↻</button>
+<button class="secondary" id="home">Kembali ke awal</button>
+</section>
+<p class="footer">Game hiburan ringan, bukan alat ukur atau diagnosis stres.</p>
+</main>
+<script>
+let secret=[],maxTries=6,used=0,playerName='';
+const $=id=>document.getElementById(id);
+function newSecret(){let a=[];while(a.length<4){let n=Math.floor(Math.random()*10);if(!a.includes(n))a.push(n)}return a.join('')}
+function start(){playerName=$('player').value.trim()||'Teman';maxTries=+$('tries').value;used=0;secret=newSecret().split('');$('setup').classList.add('hidden');$('game').classList.remove('hidden');$('welcome').textContent=`Semangat, ${playerName}! Kamu punya ${maxTries} kesempatan.`;$('history').innerHTML='';$('result').classList.add('hidden');$('again').classList.add('hidden');$('submit').disabled=false;$('guess').disabled=false;$('guess').value='';progress();$('guess').focus()}
+function progress(){$('progress').textContent=`Kesempatan tersisa: ${maxTries-used} dari ${maxTries}`}
+function finish(win){$('result').classList.remove('hidden');$('result').innerHTML=win?`<h2>🎉 Hebat, ${playerName}!</h2>Angka berhasil ditebak dalam ${used} percobaan. Ambil napas, kamu keren!`:`<h2>🌻 Tetap semangat, ${playerName}!</h2>Angka rahasianya ${secret.join('')}. Tidak apa-apa, yang penting sudah mencoba.`;$('submit').disabled=true;$('guess').disabled=true;$('again').classList.remove('hidden')}
+$('start').onclick=start;
+$('submit').onclick=()=>{let v=$('guess').value.trim();if(!/^\d{4}$/.test(v)||new Set(v).size!==4){alert('Masukkan tepat 4 angka yang berbeda.');return}used++;let arr=v.split(''),green=0,yellow=0;arr.forEach((n,i)=>{if(n===secret[i])green++;else if(secret.includes(n))yellow++});let row=document.createElement('div');row.className='attempt';let ds=document.createElement('div');ds.className='digits';arr.forEach(n=>{let s=document.createElement('span');s.className='mini';s.textContent=n;ds.appendChild(s)});let hint=document.createElement('strong');hint.textContent=`🟩 ${green}  🟨 ${yellow}  ⬜ ${4-green-yellow}`;row.append(ds,hint);$('history').prepend(row);$('guess').value='';progress();if(green===4)finish(true);else if(used>=maxTries)finish(false);else $('guess').focus()};
+$('guess').addEventListener('input',e=>{e.target.value=e.target.value.replace(/\D/g,'').slice(0,4)});
+$('guess').addEventListener('keydown',e=>{if(e.key==='Enter')$('submit').click()});
+$('again').onclick=start;$('home').onclick=()=>{$('game').classList.add('hidden');$('setup').classList.remove('hidden')};
+</script>
+</body></html>
